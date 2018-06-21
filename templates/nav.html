@@ -1,0 +1,29 @@
+{% load i18n %}
+{#{% load account %}#}
+
+<nav class="site-header navbar navbar-expand navbar-dark flex-column flex-md-row">
+  <a class="navbar-brand mr-0 mr-md-2" href="{% url 'home' %}">
+    {#    d-block mx-auto#}
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="d-inline-block align-middle"><circle cx="12" cy="12" r="10"></circle><line x1="14.31" y1="8" x2="20.05" y2="17.94"></line><line x1="9.69" y1="8" x2="21.17" y2="8"></line><line x1="7.38" y1="12" x2="13.12" y2="2.06"></line><line x1="9.69" y1="16" x2="3.95" y2="6.06"></line><line x1="14.31" y1="16" x2="2.83" y2="16"></line><line x1="16.62" y1="12" x2="10.88" y2="21.94"></line></svg>
+    {% trans "Residencial Amazonas" %}
+  </a>
+  <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">
+    <li class="nav-item">
+      <a class="nav-link p-2" href="#" target="_blank" rel="noopener" aria-label="Facebook">
+        <i class="fab fa-facebook"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link p-2" href="#" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link p-2" href="#" target="_blank" rel="noopener" aria-label="Twitter">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  </ul>
+{#  <a class="btn btn-outline-primary d-none d-lg-inline-block mb-3 mb-md-0 ml-md-3" href="{% url 'account_login' %}">{% trans "Log In" %}</a>#}
+{#  <a class="btn btn-success d-none d-lg-inline-block mb-3 mb-md-0 ml-md-3" href="{% url 'account_signup' %}">{% trans "Sign Up" %}</a>#}
+</nav>
