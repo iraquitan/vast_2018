@@ -5,7 +5,10 @@ from clean_data import clean_csv
 
 
 # Create your views here.
-def mc_1(request):
+def api_all_birds(request):
     csv = clean_csv("AllBirdsv4.csv")
     return HttpResponse(csv)
-    # return csv
+
+
+def mc1_home(request):
+    return render(request, "mini_challenge_1/home.html")

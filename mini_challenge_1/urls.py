@@ -4,5 +4,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('all-birds', views.mc_1, name='api-allbirds'),
+    path('api/all-birds', views.api_all_birds, name="api-allbirds"),
+    path('', views.mc1_home, name="mc1-home")
 ]
