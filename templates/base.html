@@ -18,6 +18,10 @@
   {% block fontawesome %}
     <script defer src="{% static "vendor/fontawesome/js/fontawesome-all.js" %}"></script>
   {% endblock fontawesome %}
+  {% block d3 %}
+{#    <script type="module" src="{% static "vendor/d3/js/d3.min.js" %}"></script>#}
+    <script src="{% static "vendor/d3/js/d3.min.js" %}"></script>
+  {% endblock d3 %}
 </head>
 <body>
 
@@ -36,7 +40,7 @@
 
 {% include "./footer.html" %}
 
-{% block javascript %}
+{% block bootstrap_js %}
   <!-- Bootstrap core JavaScript
   ================================================== -->
   <!-- Optional JavaScript -->
@@ -44,6 +48,9 @@
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
   <script src="{% static "vendor/bootstrap/js/bootstrap.min.js" %}"></script>
+{% endblock bootstrap_js %}
+
+{% block javascript %}
 {% endblock javascript %}
 </body>
 </html>
