@@ -88,3 +88,14 @@
 }
 
 .overflow-hidden { overflow: hidden; }
+
+.key-dot {
+    display: inline-block;
+    height: 10px;
+    margin-right: .5em;
+    width: 10px;
+}
+
+.legend {
+    margin-right:20px;
+}
