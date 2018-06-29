@@ -41,7 +41,9 @@ def clean_datetime(dates, times):
         if d == "4/3/2012":
             d = "2012-03-04"
         elif d == "0000-00-00":
-            d = default_date
+            # d = default_date
+            # d = pd.NaT
+            d = d
         elif len(dnums) == 3:
             if dnums[1] == "00":
                 dnums[1] = "01"
@@ -54,7 +56,8 @@ def clean_datetime(dates, times):
             datetimes.append(dateutil.parser.parse(d + " " + t))
         except ValueError as e:
             print(f"{d} {t}")
-            datetimes.append(dateutil.parser.parse(default_date + " " + default_time))
+            # datetimes.append(dateutil.parser.parse(default_date + " " + default_time))
+            datetimes.append(pd.NaT)
     return datetimes
 
 
