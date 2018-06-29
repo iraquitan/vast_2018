@@ -27,22 +27,11 @@ function reqListener () {
                     .selectAll(".legend").data(_data)
                     .enter().append('div')
                     .attr("class", "legend")
-                    .html(function (d, i) {
-                        // return d.toUpperCase()
-                        return d
-                    })
                     .style("color","#737373")
-                    // .style("color", function (d, i) { return color(d) })
                     .html(function (d, i) {
-                        // return d.toUpperCase()
-                        return d
-                    })
-                    // .append("span")
-                    .insert("span")
-                    .attr("class", "key-dot")
-                    .style("background-color", function (d, i) {
-                        return color(d);
-                    })
+                        var span = `<span class="key-dot" style="background-color:${color(d)}"></span>`;
+                        return span + " " + d;
+                });
             })
         }
         return exports;
