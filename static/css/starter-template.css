@@ -91,6 +91,8 @@
 
 .key-dot {
     display: inline-block;
+    /*float: left;*/
+    vertical-align: center;
     height: 10px;
     margin-right: .5em;
     width: 10px;
