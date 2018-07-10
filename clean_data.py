@@ -77,3 +77,11 @@ def clean_csv(csv_path):
         df[c] = df[c].str.lower()
     df = df.rename(columns=lambda c: c.lower().replace(" ", "_"))
     return df.to_json(orient="records", date_format="iso")
+
+
+def test_csv(csv_path):
+    df = pd.read_csv(csv_path)
+    for c in df.select_dtypes(include=["object"]).columns:
+        df[c] = df[c].str.lower()
+    df = df.rename(columns=lambda c: c.lower().replace(" ", "_"))
+    return df.to_json(orient="records", date_format="iso")

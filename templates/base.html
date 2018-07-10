@@ -15,6 +15,10 @@
     <!-- Custom styles for this template -->
     <link href="{% static "css/starter-template.css" %}" rel="stylesheet">
   {% endblock css %}
+
+  {% block additional_css %}
+  {% endblock additional_css %}
+
   {% block fontawesome %}
     <script defer src="{% static "vendor/fontawesome/js/fontawesome-all.js" %}"></script>
   {% endblock fontawesome %}
