@@ -44,12 +44,17 @@
 {% block content %}
 <h1>Mini Challenge 1</h1>
   <div class="row">
-  <div class="map col-8"></div>
-  <fieldset class="legends col-4">
+  <div class="map col-7"></div>
+  <fieldset id="legend-species" class="legends col-3">
     <legend>Species</legend>
 
     <input type="checkbox" id="cc" checked />
     <label for="cc">Check All</label>
+  </fieldset>
+  <fieldset id="legend-vt" class="legends col-2">
+    <legend>Vocal. Types</legend>
+    <input type="checkbox" id="vt-cc" checked />
+    <label for="vt-cc">Check All</label>
   </fieldset>
   </div>
 {% endblock content %}

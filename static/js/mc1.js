@@ -15,25 +15,57 @@ function reqListener () {
       return str.split(' ').join('-');
   };
 
+  var fmtVocalType = function (vt) {
+      return formatSpecieName(String(vt)).split(',').join('');
+  }
+
   var dataset = this.response;
 
   var species = d3.map(dataset, function(d){ return formatSpecieName(d.english_name); }).keys();
 
-  var callTypes = d3.map(dataset, function(d){ return d.vocalization_type; }).keys();
+  var callTypes = d3.map(dataset, function(d){ return fmtVocalType(d.vocalization_type); }).keys();
 
   var symbols = d3.scalePoint()
       .range([0, 6])
       .domain(callTypes);
 
-  var  colorRange = d3.scalePoint()
-      .range([0, 1])
-      // .domain(d3.map(data, function(d){ return d.english_name; }).keys())
-      .domain(species);
-
   var color = d3.scaleOrdinal()
       .range(schemeCategory20)
       // .domain(d3.map(data, function(d){ return d.english_name; }).keys());
       .domain(species);
+
+  function template(strings, ...keys) {
+      return (function(...values) {
+          var dict = values[values.length - 1] || {};
+          var result = [strings[0]];
+          keys.forEach(function(key, i) {
+              var value = Number.isInteger(key) ? values[key] : dict[key];
+              result.push(value, strings[i + 1]);
+          });
+          return result.join('');
+      });
+  }
+
+  var htmlTemplate = template`<input type="checkbox" id=${'d1'} class="speciesCheckbox" value=${'d1'} checked />
+<label for="${'d2'}"><span class="key-dot" style="background-color:${'d3'}"></span>${'d2'}</label>`;
+
+  var htmlTemplate2 = template`<input type="checkbox" id=${'d1'} class="callCheckbox" value=${'d1'} checked />
+<label for="${'d2'}"><span class="key-dot">${'d3'}</span>${'d2'}</label>`;
+
+  // console.log(htmlTemplate({d1: "test1", d2: "test2", d3: "test3"}));
+
+  function reusableLegend(_selection, _class, _html, _htmlKeys) {
+      _selection.each(function (_data) {
+          d3.select(this)
+              .selectAll(`.${_class}`).data(_data)
+              .enter().append("div")
+              .classed(_class, true)
+              .style("color", "#737373")
+              .html(function (d) {
+                  return _html(_htmlKeys(d))
+              });
+      })
+  }
 
     d3.edge2 = {};
     d3.edge2.reuselegend = function module() {
@@ -71,19 +103,15 @@ function reqListener () {
       }
       return exports;
   };
-  // var color = d3.scaleOrdinal()
-  //     .range(d3.schemeSpectral)
-  //     .domain(d3.map(data, function(d){ return colorRange(d.english_name); }).keys());
 
   var opacity = d3.scaleTime()
     .range([0.1, 1])
-    // .domain(d3.extent(d3.map(data, function(d){return Date(d.date_time);}).values()))
     .domain(d3.extent(dataset, function(d){ return new Date(d.date_time); }));
 
   var ctn = d3.select(".map");
 
   var svg = ctn.append("svg")
-      .attr("width", 800)
+      .attr("width", 500)
       .attr("height", 600);
 
   var g = svg.append("g");
@@ -112,7 +140,8 @@ function reqListener () {
       .attr("dy", "-0.8em")
       .text("Kasios waste");
 
-    var legend = d3.edge2.reuselegend();
+    // var legend = d3.edge2.reuselegend();
+    // var legend = reusableLegend();
 
     var margin = {right: 50, left: 50};
     var width = +svg.attr("width") - margin.left - margin.right;
@@ -163,16 +192,38 @@ function reqListener () {
 
 
 
-    var legends = d3.select(".legends");
+    var legendSpecies = d3.select("#legend-species");
     var cc = d3.select("#cc");
     cc.on("click", function (o) {
-        checkAll(this);
+        checkAll(this, "speciesCheckbox");
         updateCheckbox();
     });
 
-    legends.datum(species).call(legend);
+    // legendsSpecies.datum(species).call(legend);
+    legendSpecies.datum(species).call(reusableLegend, "legend", htmlTemplate, function (d) {
+        return {d1: formatSpecieName(d), d2: d, d3: color(d)};
+    });
+
+    var legendVt = d3.select("#legend-vt");
+    var vtcc = d3.select("#vt-cc");
+    vtcc.on("click", function (o) {
+        checkAll(this, "callCheckbox");
+        updateCheckbox();
+    });
+    legendVt.datum(callTypes).call(reusableLegend, "legend", htmlTemplate2, function (d) {
+        return {d1: formatSpecieName(d), d2: d, d3: function () {
+            var tt = d3.create("div");
+            var symbolLg = tt.append("svg").attr("width", "10px").attr("height", "10px");
+                symbolLg.append("path")
+                    .attr('d', d3.symbol().type(d3.symbols[symbols(d)]).size(30))
+                    .attr("fill", "#737373")
+                    .attr("transform", "translate(5, 5)");
+                return tt.html();
+            }()};
+    });
 
     d3.selectAll(".speciesCheckbox").on("change", updateCheckbox);
+    d3.selectAll(".callCheckbox").on("change", updateCheckbox);
 
     drawData(dataset);
     updateCheckbox();
@@ -186,11 +237,21 @@ function reqListener () {
             .data(testData, function(d) { return d ? d.id : this.id;});
 
         testBirds.enter()
-            .append("path")
-            .classed("testbirds", true)
-            .attr('d', d3.symbol().type(d3.symbolCross).size(50))
-            .attr("fill", function (d, i) { return color(formatSpecieName("rose-crested-blue-pipit"))})
-            .attr("transform", function(d) { return "translate(" + (d.x * 2.5) + "," + (d.y * 2.5) + ")"; });
+            .append("text")
+            .attr("x", function (d) {
+                return d.x * 2.5;
+            })
+            .attr("y", function (d) {
+                return d.y * 2.5;
+            })
+            .attr("fill", color(formatSpecieName("rose-crested-blue-pipit")))
+            .style("font-weight", "bold")
+            .text("K")
+            // .append("path")
+            // .classed("testbirds", true)
+            // .attr('d', d3.symbol().type(d3.symbolWye).size(50))
+            // .attr("fill", function (d, i) { return color(formatSpecieName("rose-crested-blue-pipit"))})
+            // .attr("transform", function(d) { return "translate(" + (d.x * 2.5) + "," + (d.y * 2.5) + ")"; });
     });
     testReq.open("GET", "http://localhost:8001/mc1/api/test-birds");
     testReq.setRequestHeader('Access-Control-Allow-Origin','*');
@@ -218,18 +279,18 @@ function reqListener () {
             .append("path")
             .classed("circles", true)
             .attr("d", function (d) {
-                return d3.symbol().type(d3.symbols[symbols(d.vocalization_type)]).size(30)();
+                return d3.symbol().type(d3.symbols[symbols(fmtVocalType(d.vocalization_type))]).size(30)();
             })
             .attr("fill", function (d, i) { return color(formatSpecieName(d.english_name))})
             .attr("transform", function(d) { return "translate(" + (d.x * 2.5) + "," + (d.y * 2.5) + ")"; })
             .transition()
             .duration(400)
             .attr("d", function (d) {
-                return d3.symbol().type(d3.symbols[symbols(d.vocalization_type)]).size(100)();
+                return d3.symbol().type(d3.symbols[symbols(fmtVocalType(d.vocalization_type))]).size(100)();
             })
             .transition()
             .attr("d", function (d) {
-                return d3.symbol().type(d3.symbols[symbols(d.vocalization_type)]).size(30)();
+                return d3.symbol().type(d3.symbols[symbols(fmtVocalType(d.vocalization_type))]).size(30)();
             });
 
         circles.exit()
@@ -255,22 +316,38 @@ function reqListener () {
                 choices.push(cb.property("value"));
             }
         });
+
+        var choicesB = [];
+        d3.selectAll(".callCheckbox").each(function(d){
+            cb = d3.select(this);
+            if(cb.property("checked")){
+                choicesB.push(cb.property("value"));
+            }
+        });
         // filter data set and redraw plot
         var newData = dataset.filter(function(d) {
             var dataDate = new Date(d.date_time);
             // return dataDate >= monthStart & dataDate < monthEnd;
             // return dataDate >= yearStart & dataDate < yearEnd;
-            return dataDate >= yearStart & dataDate < yearEnd & choices.includes(formatSpecieName(d.english_name));
+            return dataDate >= yearStart & dataDate < yearEnd & choices.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type));
         });
         drawData(newData);
     }
 
     function updateCheckbox() {
-        var choices = [];
+        var choicesA = [];
         d3.selectAll(".speciesCheckbox").each(function(d){
             cb = d3.select(this);
             if(cb.property("checked")){
-                choices.push(cb.property("value"));
+                choicesA.push(cb.property("value"));
+            }
+        });
+
+        var choicesB = [];
+        d3.selectAll(".callCheckbox").each(function(d){
+            cb = d3.select(this);
+            if(cb.property("checked")){
+                choicesB.push(cb.property("value"));
             }
         });
 
@@ -283,8 +360,7 @@ function reqListener () {
 
         var newData = dataset.filter(function(d) {
             var dataDate = new Date(d.date_time);
-            return dataDate >= yearStart & dataDate < yearEnd & choices.includes(formatSpecieName(d.english_name));
-            // return choices.includes(formatSpecieName(d.english_name));
+            return dataDate >= yearStart & dataDate < yearEnd & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type));
         });
         drawData(newData);
     }
@@ -298,8 +374,9 @@ oReq.setRequestHeader('Access-Control-Allow-Origin','*');
 oReq.responseType = "json";
 oReq.send();
 
-function checkAll(o) {
-  var boxes = document.getElementsByTagName("input");
+function checkAll(o, _class) {
+  // var boxes = document.getElementsByTagName("input");
+  var boxes = document.getElementsByClassName(_class);
   for (var x = 0; x < boxes.length; x++) {
     var obj = boxes[x];
     if (obj.type === "checkbox") {

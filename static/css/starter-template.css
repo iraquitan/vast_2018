@@ -102,3 +102,7 @@
 .legend {
     margin-right:20px;
 }
+
+.legend label {
+  font-size: x-small;
+}
