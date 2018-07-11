@@ -1,0 +1,31 @@
+{
+  "name": "vast_project",
+  "version": "1.0.0",
+  "description": "Javascript tools for VAST 2018 Mini Challenges",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --config webpack.config.js",
+    "build": "webpack"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iraquitan/vast_2018.git"
+  },
+  "author": "Iraquitan Cordeiro Filho",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/iraquitan/vast_2018/issues"
+  },
+  "homepage": "https://github.com/iraquitan/vast_2018#readme",
+  "devDependencies": {
+    "css-loader": "^1.0.0",
+    "standard": "^11.0.1",
+    "style-loader": "^0.21.0",
+    "webpack": "^4.16.0",
+    "webpack-cli": "^3.0.8"
+  },
+  "dependencies": {
+    "d3": "^5.5.0"
+  }
+}

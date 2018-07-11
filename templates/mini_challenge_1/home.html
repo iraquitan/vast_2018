@@ -2,60 +2,37 @@
 
 {% load static %}
 
-{% block additional_css %}
-  <style>
-    .ticks {
-      font: 10px sans-serif;
-    }
-
-    .track,
-    .track-inset,
-    .track-overlay {
-      stroke-linecap: round;
-    }
-
-    .track {
-      stroke: #000;
-      stroke-opacity: 0.3;
-      stroke-width: 10px;
-    }
-
-    .track-inset {
-      stroke: #ddd;
-      stroke-width: 8px;
-    }
-
-    .track-overlay {
-      pointer-events: stroke;
-      stroke-width: 50px;
-      stroke: transparent;
-      cursor: crosshair;
-    }
-
-    .handle {
-      fill: #fff;
-      stroke: #000;
-      stroke-opacity: 0.5;
-      stroke-width: 1.25px;
-    }
-</style>
-{% endblock %}
-
 {% block content %}
-<h1>Mini Challenge 1</h1>
+  <h1>Mini Challenge 1</h1>
   <div class="row">
-  <div class="map col-7"></div>
-  <fieldset id="legend-species" class="legends col-3">
-    <legend>Species</legend>
-
-    <input type="checkbox" id="cc" checked />
-    <label for="cc">Check All</label>
-  </fieldset>
-  <fieldset id="legend-vt" class="legends col-2">
-    <legend>Vocal. Types</legend>
-    <input type="checkbox" id="vt-cc" checked />
-    <label for="vt-cc">Check All</label>
-  </fieldset>
+    <div class="map col-7"></div>
+    <fieldset id="legend-species" class="legends col-3">
+      <legend>Species</legend>
+      <div class="legend">
+        <input type="checkbox" id="cc" checked/>
+        <label for="cc">Check All</label>
+      </div>
+    </fieldset>
+    <div class="col-2">
+      <fieldset id="legend-vt" class="legends row">
+        <legend>Vocal. Types</legend>
+        <div class="legend">
+          <input type="checkbox" id="vt-cc" checked/>
+          <label for="vt-cc">Check All</label>
+        </div>
+      </fieldset>
+      <fieldset id="slider-rb" class="legends row">
+        <legend>Slider Tune</legend>
+        <div class="legend">
+          <input type="radio" id="rb-year" class="slider-rb-opt" name="slider-rb" checked/>
+          <label for="rb-year">by Year</label>
+        </div>
+        <div class="legend">
+          <input type="radio" id="rb-month" class="slider-rb-opt" name="slider-rb"/>
+          <label for="rb-month">by Month</label>
+        </div>
+      </fieldset>
+    </div>
   </div>
 {% endblock content %}
 
