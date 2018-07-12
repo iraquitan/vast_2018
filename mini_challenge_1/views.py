@@ -10,8 +10,12 @@ def api_all_birds(request):
     return HttpResponse(csv)
 
 
-def api_test_birds(request):
-    csv = test_csv("test-birds-location.csv")
+def api_test_birds(request, proba=True):
+    if proba:
+        test_file = "test-birds-location-proba.csv"
+    else:
+        test_file = "test-birds-location.csv"
+    csv = test_csv(test_file)
     return HttpResponse(csv)
 
 

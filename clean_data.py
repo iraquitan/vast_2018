@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from pathlib import Path
 import re
 import numpy as np
 import pandas as pd
@@ -85,3 +86,14 @@ def test_csv(csv_path):
         df[c] = df[c].str.lower()
     df = df.rename(columns=lambda c: c.lower().replace(" ", "_"))
     return df.to_json(orient="records", date_format="iso")
+
+
+def organize_audio_files(path):
+    root_dir = Path(path)
+    for f in root_dir.glob("*.mp3"):
+        specie = re.match("[a-z-]+", f.name, re.I).group()[:-1]
+        specie_dir = f.parent / specie
+        specie_dir.mkdir(parents=True, exist_ok=True)
+        dest = specie_dir / f.name
+        if not dest.exists():
+            f.replace(dest)

@@ -237,6 +237,12 @@ function reqListener () {
   testReq.addEventListener('load', function () {
     var testData = this.response
 
+    var fontScale = d3.scaleLinear().range([5, 24]).domain([0, 1])
+
+    // testData = testData.filter(function (d) {
+    //   return d.clf_proba >= 0.1
+    // })
+
     var testBirds = circlesPlot.selectAll('.testbirds')
       .data(testData, function (d) {
         return d ? d.id : this.id
@@ -252,6 +258,9 @@ function reqListener () {
       })
       .attr('fill', color(formatSpecieName('rose-crested-blue-pipit')))
       .style('font-weight', 'bold')
+      .style('font-size', function (d) {
+        return `${fontScale(d.clf_proba)}px`
+      })
       .text('K')
     // .append("path")
     // .classed("testbirds", true)
@@ -259,7 +268,7 @@ function reqListener () {
     // .attr("fill", function (d, i) { return color(formatSpecieName("rose-crested-blue-pipit"))})
     // .attr("transform", function(d) { return "translate(" + scaleX(d.x) + "," + scaleY(d.y) + ")"; });
   })
-  testReq.open('GET', 'http://localhost:8001/mc1/api/test-birds')
+  testReq.open('GET', 'http://localhost:8001/mc1/api/test-birds&proba=true')
   testReq.setRequestHeader('Access-Control-Allow-Origin', '*')
   testReq.responseType = 'json'
   testReq.send()
