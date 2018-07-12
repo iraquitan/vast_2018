@@ -177,9 +177,14 @@ function reqListener () {
       return formatDateIntoYear(d)
     })
 
-  var handle = slider.insert('circle', '.track-overlay')
+  // var handle = slider.insert('circle', '.track-overlay')
+  //   .attr('class', 'handle')
+  //   .attr('r', 9)
+
+  var handle = slider.insert('path', '.track-overlay')
     .attr('class', 'handle')
-    .attr('r', 9)
+    .attr('d', 'M-5.5,-5.5v10l6,5.5l6,-5.5v-10z')
+    .attr('transform', 'translate(0,0)')
 
   var label = slider.append('text')
     .attr('class', 'label')
@@ -223,6 +228,7 @@ function reqListener () {
 
   d3.selectAll('.species-cb').on('change', updateCheckbox)
   d3.selectAll('.call-cb').on('change', updateCheckbox)
+  d3.selectAll('.slider-rb-opt').on('change', updateCheckbox)
 
   drawData(dataset)
   updateCheckbox()
@@ -291,16 +297,25 @@ function reqListener () {
   }
 
   function update (h) {
-    // update position and text of label according to slider scale
-    handle.attr('cx', x(h))
-    label
-      .attr('x', x(h))
-      .text(formatDate(h))
-    var monthStart = new Date(h.getFullYear(), h.getMonth(), 1)
-    var monthEnd = new Date(h.getFullYear(), h.getMonth() + 1, 1)
+    var hValue = h
+    var valueModStep = (x(h) - x(x.domain()[0])) % 50
+    var alignValue = x(h) - valueModStep
+    // hValue = x.invert(alignValue)
 
-    var yearStart = new Date(h.getFullYear(), 0, 1)
-    var yearEnd = new Date(h.getFullYear() + 1, 0, 1)
+    // update position and text of label according to slider scale
+    // handle.attr('cx', x(h))
+    handle.attr('transform', 'translate(' + x(hValue) + ',0)')
+    // handle.attr('transform', 'translate(' + alignValue + ',0)')
+    label
+      .attr('x', x(hValue))
+      .text(formatDate(hValue))
+      // .attr('x', alignValue)
+      // .text(formatDate(x.invert(alignValue)))
+    var monthStart = new Date(hValue.getFullYear(), hValue.getMonth(), 1)
+    var monthEnd = new Date(hValue.getFullYear(), hValue.getMonth() + 1, 1)
+
+    var yearStart = new Date(hValue.getFullYear(), 0, 1)
+    var yearEnd = new Date(hValue.getFullYear() + 1, 0, 1)
 
     var sliderTuneOpts = {
       'rb-month': {
@@ -340,9 +355,6 @@ function reqListener () {
     // filter data set and redraw plot
     var newData = dataset.filter(function (d) {
       var dataDate = new Date(d.date_time)
-      // return dataDate >= monthStart & dataDate < monthEnd;
-      // return dataDate >= yearStart & dataDate < yearEnd;
-      // return dataDate >= yearStart & dataDate < yearEnd & choices.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
       return dataDate >= sliderTune['start'] & dataDate < sliderTune['end'] & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
     })
     drawData(newData)
@@ -365,7 +377,8 @@ function reqListener () {
       }
     })
 
-    var h = x.invert(handle.attr('cx'))
+    // var h = x.invert(handle.attr('cx'))
+    var h = x.invert(+handle.attr('transform').match(/\d+/))
     var monthStart = new Date(h.getFullYear(), h.getMonth(), 1)
     var monthEnd = new Date(h.getFullYear(), h.getMonth() + 1, 1)
 
@@ -410,7 +423,6 @@ oReq.responseType = 'json'
 oReq.send()
 
 function checkAll (o, _class) {
-  // var boxes = document.getElementsByTagName("input");
   var boxes = document.getElementsByClassName(_class)
   for (var x = 0; x < boxes.length; x++) {
     var obj = boxes[x]
