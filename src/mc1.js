@@ -2,6 +2,18 @@ import * as d3 from 'd3';
 import './starter-template.css';
 import './mc1.css';
 
+// function delay(t, v) {
+//    return new Promise(function(resolve) {
+//        setTimeout(resolve.bind(null, v), t)
+//    });
+// }
+//
+// Promise.prototype.delay = function(t) {
+//     return this.then(function(v) {
+//         return delay(t, v);
+//     });
+// }
+
 function reqListener () {
   var schemeCategory20 = [
     '#d62728', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
@@ -25,7 +37,12 @@ function reqListener () {
     return formatSpecieName(String(vt)).split(',').join('')
   }
 
-  var dataset = this.response
+  let dataset = this.response
+
+  let testDataset
+  d3.json('http://localhost:8001/mc1/api/test-birds?proba=true').then(function (data) {
+      testDataset = data
+  })
 
   var species = d3.map(dataset, function (d) {
     return formatSpecieName(d.english_name)
@@ -104,31 +121,6 @@ function reqListener () {
   var circlesPlot = g.append('g')
     .classed('dots-ctn', true)
 
-  var kasios = circlesPlot.selectAll('.kasios')
-    .data([
-      {x: 148, y: 159, label: 'Kasios waste'},
-      {x: 90, y: 21, label: 'Kasios'}
-    ])
-
-  kasios.enter()
-    .append('path')
-    .classed('kasios', true)
-    .attr('d', d3.symbol().type(d3.symbolStar))
-    .attr('fill', '#05472a')
-    .attr('transform', function (d) {
-      return 'translate(' + scaleX(d.x) + ',' + scaleY(d.y) + ')'
-    })
-
-  kasios.enter()
-    .append('text')
-    .attr('transform', function (d) {
-      return 'translate(' + scaleX(d.x) + ',' + scaleY(d.y) + ')'
-    })
-    .attr('dy', '-0.8em')
-    .text(function (d) {
-      return d.label
-    })
-
   var margin = {right: 50, left: 50}
   var width = +svg.attr('width') - margin.left - margin.right
   var height = +svg.attr('height')
@@ -186,18 +178,6 @@ function reqListener () {
       .on('start drag', function () {
         update(x.invert(d3.event.x))
       }))
-
-  // slider.insert('g', '.track-overlay')
-  //   .attr('class', 'ticks')
-  //   .attr('transform', 'translate(0,' + 28 + ')')
-  //   .selectAll('text')
-  //   .data(x.ticks(10))
-  //   .enter().append('text')
-  //   .attr('x', x)
-  //   .attr('text-anchor', 'middle')
-  //   .text(function (d) {
-  //     return formatDateIntoYear(d)
-  //   })
 
   slider.insert('g', '.track-overlay')
     .attr('class', 'ticks')
@@ -272,25 +252,48 @@ function reqListener () {
   d3.selectAll('.call-cb').on('change', updateCheckbox)
   d3.selectAll('.slider-rb-opt').on('change', updateCheckbox)
 
-  drawData(dataset)
-  updateCheckbox()
+  let kasiosCB = d3.select('#kasios-cb-opt')
+  kasiosCB.on('change', updateCheckbox)
 
-  var testReq = new XMLHttpRequest()
-  testReq.addEventListener('load', function () {
-    var testData = this.response
+  setTimeout(function () {
+    drawData(dataset)
+    updateCheckbox()
+  }, 4000)
 
-    var fontScale = d3.scaleLinear().range([5, 24]).domain([0, 1])
+  function drawTestData (data) {
+    let plot = kasiosCB.property('checked')
+    data = data.filter(function (d) {
+      if (plot) {
+        return d
+      }
+    })
 
-    // testData = testData.filter(function (d) {
+    let locData = [
+      {id: 1, x: 148, y: 159, label: 'Kasios waste'},
+      {id: 2, x: 90, y: 21, label: 'Kasios'}
+      ]
+    locData = locData.filter(function (d) {
+      if (plot) {
+        return d
+      }
+    })
+
+    let fontScale = d3.scaleLinear().range([5, 24]).domain([0, 1])
+
+    // data = data.filter(function (d) {
     //   return d.clf_proba >= 0.1
     // })
 
-    var testBirds = circlesPlot.selectAll('.testbirds')
-      .data(testData, function (d) {
+    let testBirds = circlesPlot.selectAll('.testbirds')
+      .data(data, function (d) {
         return d ? d.id : this.id
       })
 
-    testBirds.enter()
+    let enterTestBirds = testBirds.enter()
+      .append('g')
+      .classed('testbirds', true)
+
+    enterTestBirds
       .append('text')
       .attr('x', function (d) {
         return scaleX(d.x)
@@ -304,19 +307,57 @@ function reqListener () {
         return `${fontScale(d.clf_proba)}px`
       })
       .text('K')
-    // .append("path")
-    // .classed("testbirds", true)
-    // .attr('d', d3.symbol().type(d3.symbolWye).size(50))
-    // .attr("fill", function (d, i) { return color(formatSpecieName("rose-crested-blue-pipit"))})
-    // .attr("transform", function(d) { return "translate(" + scaleX(d.x) + "," + scaleY(d.y) + ")"; });
-  })
-  testReq.open('GET', 'http://localhost:8001/mc1/api/test-birds?proba=true')
-  testReq.setRequestHeader('Access-Control-Allow-Origin', '*')
-  testReq.responseType = 'json'
-  testReq.send()
+      .transition()
+      .duration(400)
+      .style('font-size', function (d) {
+        return `${fontScale(d.clf_proba) * 2}px`
+      })
+      .transition()
+      .style('font-size', function (d) {
+        return `${fontScale(d.clf_proba)}px`
+      })
+
+    let kasios = circlesPlot.selectAll('.kasios')
+      .data(locData, function (d) {
+        return d ? d.id : this.id
+      })
+
+    let enterKasios = kasios.enter()
+      .append('g')
+      .classed('kasios', true)
+
+    enterKasios
+      .append('path')
+      .attr('d', d3.symbol().type(d3.symbolStar))
+      .attr('fill', '#05472a')
+      .attr('transform', function (d) {
+        return 'translate(' + scaleX(d.x) + ',' + scaleY(d.y) + ')'
+      })
+      .transition()
+      .duration(400)
+      .attr('d', d3.symbol().type(d3.symbolStar).size(200))
+      .transition()
+      .attr('d', d3.symbol().type(d3.symbolStar))
+
+    enterKasios
+      .append('text')
+      .attr('transform', function (d) {
+        return 'translate(' + scaleX(d.x) + ',' + scaleY(d.y) + ')'
+      })
+      .attr('dy', '-0.8em')
+      .text(function (d) {
+        return d.label
+      })
+
+    testBirds.exit()
+      .remove()
+
+    kasios.exit()
+      .remove()
+  }
 
   function drawData (data) {
-    var circles = circlesPlot.selectAll('.circles')
+    let circles = circlesPlot.selectAll('.circles')
       .data(data, function (d) {
         return d ? d.file_id : this.id
       })
@@ -346,7 +387,6 @@ function reqListener () {
     circles.exit()
       .remove()
   }
-
 
   function setStep () {
     let step = +formatDateIntoYear(x.domain()[1]) - +formatDateIntoYear(x.domain()[0]) + 1
@@ -393,7 +433,6 @@ function reqListener () {
     let timeFmt = selHandleLabel(sliderOpt)
     var hValue = xQuant(x(h))
     var alignValue = x(hValue)
-    // hValue = x.invert(alignValue)
 
     // update position and text of label according to slider scale
     handle.attr('transform', 'translate(' + alignValue + ',0)')
@@ -418,12 +457,6 @@ function reqListener () {
     }
 
     var sliderTune = sliderTuneOpts[sliderOpt]
-    // d3.selectAll('.slider-rb-opt').each(function (o) {
-    //   var rb = d3.select(this)
-    //   if (rb.property('checked')) {
-    //     sliderTune = sliderTuneOpts[rb.attr('id')]
-    //   }
-    // })
 
     var choicesA = []
     d3.selectAll('.species-cb').each(function (d) {
@@ -445,36 +478,46 @@ function reqListener () {
       var dataDate = new Date(d.date_time)
       return dataDate >= sliderTune['start'] & dataDate < sliderTune['end'] & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
     })
-    // console.log(newData)
     drawData(newData)
   }
 
   function updateCheckbox () {
-    var choicesA = []
+    let choicesA = []
     d3.selectAll('.species-cb').each(function (d) {
-      var cb = d3.select(this)
+      let cb = d3.select(this)
       if (cb.property('checked')) {
         choicesA.push(cb.property('value'))
       }
     })
 
-    var choicesB = []
+    let choicesB = []
     d3.selectAll('.call-cb').each(function (d) {
-      var cb = d3.select(this)
+      let cb = d3.select(this)
       if (cb.property('checked')) {
         choicesB.push(cb.property('value'))
       }
     })
 
-    // var h = x.invert(handle.attr('cx'))
-    var h = x.invert(+handle.attr('transform').match(/\d+/))
-    var monthStart = new Date(h.getFullYear(), h.getMonth(), 1)
-    var monthEnd = new Date(h.getFullYear(), h.getMonth() + 1, 1)
+    let sliderOpt
+    d3.selectAll('.slider-rb-opt').each(function (o) {
+      let rb = d3.select(this)
+      if (rb.property('checked')) {
+        sliderOpt = rb.attr('id')
+      }
+    })
 
-    var yearStart = new Date(h.getFullYear(), 0, 1)
-    var yearEnd = new Date(h.getFullYear() + 1, 0, 1)
+    let timeFmt = selHandleLabel(sliderOpt)
+    let xQuant = selStep(sliderOpt)
 
-    var sliderTuneOpts = {
+    let h = xQuant(+handle.attr('transform').match(/\d+/))
+
+    let monthStart = new Date(h.getFullYear(), h.getMonth(), 1)
+    let monthEnd = new Date(h.getFullYear(), h.getMonth() + 1, 1)
+
+    let yearStart = new Date(h.getFullYear(), 0, 1)
+    let yearEnd = new Date(h.getFullYear() + 1, 0, 1)
+
+    let sliderTuneOpts = {
       'rb-month': {
         'start': monthStart,
         'end': monthEnd
@@ -485,28 +528,19 @@ function reqListener () {
       }
     }
 
-    let sliderOpt
-    d3.selectAll('.slider-rb-opt').each(function (o) {
-      var rb = d3.select(this)
-      if (rb.property('checked')) {
-        sliderOpt = rb.attr('id')
-      }
-    })
-
-    let timeFmt = selHandleLabel(sliderOpt)
-    var sliderTune = sliderTuneOpts[sliderOpt]
+    let sliderTune = sliderTuneOpts[sliderOpt]
 
     label
       .text(timeFmt(h))
 
-    var newData = dataset.filter(function (d) {
-      var dataDate = new Date(d.date_time)
-      // return dataDate >= yearStart & dataDate < yearEnd & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
+    let newData = dataset.filter(function (d) {
+      let dataDate = new Date(d.date_time)
       return dataDate >= sliderTune.start & dataDate < sliderTune.end & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
     })
     drawData(newData)
-  }
 
+    drawTestData(testDataset)
+  }
 }
 
 var oReq = new XMLHttpRequest()
