@@ -56,13 +56,13 @@ def clean_datetime(dates, times):
         try:
             datetimes.append(dateutil.parser.parse(d + " " + t))
         except ValueError as e:
-            print(f"{d} {t}")
+            # print(f"{d} {t}")
             # datetimes.append(dateutil.parser.parse(default_date + " " + default_time))
             datetimes.append(pd.NaT)
     return datetimes
 
 
-def clean_csv(csv_path):
+def clean_csv(csv_path, year=None):
     df = pd.read_csv(
         csv_path,
         parse_dates=[["Date", "Time"]],
@@ -77,6 +77,10 @@ def clean_csv(csv_path):
     for c in df.select_dtypes(include=["object"]).columns:
         df[c] = df[c].str.lower()
     df = df.rename(columns=lambda c: c.lower().replace(" ", "_"))
+    # df = df.dropna()  # Remove NaNs
+    df = df[df["date_time"].notna()]  # Remove NaNs
+    if year:
+        df = df.loc[df["date_time"] >= f"{year}-01-01"]
     return df.to_json(orient="records", date_format="iso")
 
 

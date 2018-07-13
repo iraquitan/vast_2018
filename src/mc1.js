@@ -11,6 +11,7 @@ function reqListener () {
   ]
 
   var formatDateIntoYear = d3.timeFormat('%Y')
+  var formatDateIntoMonth = d3.timeFormat('%m')
   var formatDate = d3.timeFormat('%b %Y')
   var formatDateMonth = d3.timeFormat('%m/%Y')
 
@@ -135,11 +136,32 @@ function reqListener () {
   var [startDate, endDate] = d3.extent(dataset, function (d) {
     return new Date(d.date_time)
   })
+  startDate = new Date(+formatDateIntoYear(startDate), 0)
+  endDate = new Date(+formatDateIntoYear(endDate), +formatDateIntoMonth(endDate)-1, 1)
+  var endMonth = +formatDateIntoMonth(endDate)
+
+  let sliderOpt
+  d3.selectAll('.slider-rb-opt').each(function (o) {
+    var rb = d3.select(this)
+    if (rb.property('checked')) {
+      sliderOpt = rb.attr('id')
+    }
+  })
 
   var x = d3.scaleTime()
     .range([0, mapSize - 100])
     .domain([startDate, endDate])
     .clamp(true)
+
+  var xQuantYear = d3.scaleQuantize()
+    .domain(x.range())
+
+  var xQuantMonth = d3.scaleQuantize()
+    .domain(x.range())
+
+  setStep()
+
+  let timeFmt = selHandleLabel(sliderOpt)
 
   var slider = svg.append('g')
     .attr('class', 'slider')
@@ -165,17 +187,37 @@ function reqListener () {
         update(x.invert(d3.event.x))
       }))
 
+  // slider.insert('g', '.track-overlay')
+  //   .attr('class', 'ticks')
+  //   .attr('transform', 'translate(0,' + 28 + ')')
+  //   .selectAll('text')
+  //   .data(x.ticks(10))
+  //   .enter().append('text')
+  //   .attr('x', x)
+  //   .attr('text-anchor', 'middle')
+  //   .text(function (d) {
+  //     return formatDateIntoYear(d)
+  //   })
+
   slider.insert('g', '.track-overlay')
     .attr('class', 'ticks')
-    .attr('transform', 'translate(0,' + 18 + ')')
-    .selectAll('text')
-    .data(x.ticks(10))
-    .enter().append('text')
-    .attr('x', x)
-    .attr('text-anchor', 'middle')
-    .text(function (d) {
-      return formatDateIntoYear(d)
-    })
+    .attr('transform', 'translate(0,' + 7 + ')')
+    .call(d3.axisBottom(x)
+      .tickFormat(formatDateIntoYear)
+      .ticks(10))
+
+  slider.select('.ticks')
+    .select('.domain')
+    .remove()
+
+  slider
+      .selectAll('.ticks text')
+      .attr('fill', '#aaa')
+      .attr('y', 20)
+      .attr('dy', '.71em')
+      .attr('text-anchor', 'middle');
+
+  slider.selectAll('.ticks line').attr('stroke', '#aaa');
 
   // var handle = slider.insert('circle', '.track-overlay')
   //   .attr('class', 'handle')
@@ -189,7 +231,7 @@ function reqListener () {
   var label = slider.append('text')
     .attr('class', 'label')
     .attr('text-anchor', 'middle')
-    .text(formatDate(startDate))
+    .text(timeFmt(startDate))
     .attr('transform', 'translate(0,' + (-25) + ')')
 
   /////////////
@@ -268,7 +310,7 @@ function reqListener () {
     // .attr("fill", function (d, i) { return color(formatSpecieName("rose-crested-blue-pipit"))})
     // .attr("transform", function(d) { return "translate(" + scaleX(d.x) + "," + scaleY(d.y) + ")"; });
   })
-  testReq.open('GET', 'http://localhost:8001/mc1/api/test-birds&proba=true')
+  testReq.open('GET', 'http://localhost:8001/mc1/api/test-birds?proba=true')
   testReq.setRequestHeader('Access-Control-Allow-Origin', '*')
   testReq.responseType = 'json'
   testReq.send()
@@ -305,21 +347,59 @@ function reqListener () {
       .remove()
   }
 
+
+  function setStep () {
+    let step = +formatDateIntoYear(x.domain()[1]) - +formatDateIntoYear(x.domain()[0]) + 1
+    let xQuantRange = []
+    for (const i of Array(step).keys()) {
+      xQuantRange.push(new Date(+formatDateIntoYear(startDate)+i, 0))
+    }
+    xQuantYear.range(xQuantRange)
+
+    xQuantRange = []
+    step = (step - 1) * 12 + endMonth
+    for (const i of Array(step).keys()) {
+      xQuantRange.push(new Date(+formatDateIntoYear(startDate), i))
+    }
+    xQuantMonth.range(xQuantRange)
+  }
+
+  function selStep (tune) {
+    if (tune === 'rb-year') {
+      return xQuantYear
+    } else if (tune === 'rb-month') {
+      return xQuantMonth
+    }
+  }
+
+  function selHandleLabel (tune) {
+    if (tune === 'rb-year') {
+      return formatDateIntoYear
+    } else if (tune === 'rb-month') {
+      return formatDate
+    }
+  }
+
   function update (h) {
-    var hValue = h
-    var valueModStep = (x(h) - x(x.domain()[0])) % 50
-    var alignValue = x(h) - valueModStep
+    let sliderOpt
+    d3.selectAll('.slider-rb-opt').each(function (o) {
+      var rb = d3.select(this)
+      if (rb.property('checked')) {
+        sliderOpt = rb.attr('id')
+      }
+    })
+
+    let xQuant = selStep(sliderOpt)
+    let timeFmt = selHandleLabel(sliderOpt)
+    var hValue = xQuant(x(h))
+    var alignValue = x(hValue)
     // hValue = x.invert(alignValue)
 
     // update position and text of label according to slider scale
-    // handle.attr('cx', x(h))
-    handle.attr('transform', 'translate(' + x(hValue) + ',0)')
-    // handle.attr('transform', 'translate(' + alignValue + ',0)')
+    handle.attr('transform', 'translate(' + alignValue + ',0)')
     label
-      .attr('x', x(hValue))
-      .text(formatDate(hValue))
-      // .attr('x', alignValue)
-      // .text(formatDate(x.invert(alignValue)))
+      .attr('x', alignValue)
+      .text(timeFmt(x.invert(alignValue)))
     var monthStart = new Date(hValue.getFullYear(), hValue.getMonth(), 1)
     var monthEnd = new Date(hValue.getFullYear(), hValue.getMonth() + 1, 1)
 
@@ -337,14 +417,13 @@ function reqListener () {
       }
     }
 
-    var sliderTune
-    //
-    d3.selectAll('.slider-rb-opt').each(function (o) {
-      var rb = d3.select(this)
-      if (rb.property('checked')) {
-        sliderTune = sliderTuneOpts[rb.attr('id')]
-      }
-    })
+    var sliderTune = sliderTuneOpts[sliderOpt]
+    // d3.selectAll('.slider-rb-opt').each(function (o) {
+    //   var rb = d3.select(this)
+    //   if (rb.property('checked')) {
+    //     sliderTune = sliderTuneOpts[rb.attr('id')]
+    //   }
+    // })
 
     var choicesA = []
     d3.selectAll('.species-cb').each(function (d) {
@@ -366,6 +445,7 @@ function reqListener () {
       var dataDate = new Date(d.date_time)
       return dataDate >= sliderTune['start'] & dataDate < sliderTune['end'] & choicesA.includes(formatSpecieName(d.english_name)) & choicesB.includes(fmtVocalType(d.vocalization_type))
     })
+    // console.log(newData)
     drawData(newData)
   }
 
@@ -405,14 +485,19 @@ function reqListener () {
       }
     }
 
-    var sliderTune
-    //
+    let sliderOpt
     d3.selectAll('.slider-rb-opt').each(function (o) {
       var rb = d3.select(this)
       if (rb.property('checked')) {
-        sliderTune = sliderTuneOpts[rb.attr('id')]
+        sliderOpt = rb.attr('id')
       }
     })
+
+    let timeFmt = selHandleLabel(sliderOpt)
+    var sliderTune = sliderTuneOpts[sliderOpt]
+
+    label
+      .text(timeFmt(h))
 
     var newData = dataset.filter(function (d) {
       var dataDate = new Date(d.date_time)
@@ -426,7 +511,7 @@ function reqListener () {
 
 var oReq = new XMLHttpRequest()
 oReq.addEventListener('load', reqListener)
-oReq.open('GET', 'http://localhost:8001/mc1/api/all-birds')
+oReq.open('GET', 'http://localhost:8001/mc1/api/all-birds/2000')
 oReq.setRequestHeader('Access-Control-Allow-Origin', '*')
 oReq.responseType = 'json'
 oReq.send()

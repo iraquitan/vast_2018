@@ -1,3 +1,4 @@
+import json
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 
@@ -10,7 +11,13 @@ def api_all_birds(request):
     return HttpResponse(csv)
 
 
-def api_test_birds(request, proba=True):
+def api_all_birds_year(request, year=None):
+    csv = clean_csv("all-birds-v4.csv", year=year)
+    return HttpResponse(csv)
+
+
+def api_test_birds(request):
+    proba = json.loads(request.GET.get('proba', 'true'))
     if proba:
         test_file = "test-birds-location-proba.csv"
     else:
